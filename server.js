@@ -8,21 +8,16 @@ const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ----------------------------------
-// Middleware
-// ----------------------------------
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve frontend files
 app.use(express.static(path.join(__dirname, "public"), {
     index: false
 }));
 
-// ----------------------------------
-// MySQL Connection
-// ----------------------------------
+// ==========================================
+// MYSQL CONNECTION
+// ==========================================
 
 const db = mysql.createPool({
     host: process.env.DB_HOST,
@@ -30,13 +25,11 @@ const db = mysql.createPool({
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     port: process.env.DB_PORT || 3306,
-
     waitForConnections: true,
     connectionLimit: 5,
     queueLimit: 0
 });
 
-// Test database connection
 db.getConnection((err, connection) => {
     if (err) {
         console.error("❌ MySQL Connection Failed:");
@@ -47,17 +40,17 @@ db.getConnection((err, connection) => {
     }
 });
 
-// ----------------------------------
-// HOME PAGE
-// ----------------------------------
+// ==========================================
+// HOME
+// ==========================================
 
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "login.html"));
 });
 
-// ----------------------------------
+// ==========================================
 // API TEST
-// ----------------------------------
+// ==========================================
 
 app.get("/api", (req, res) => {
     res.json({
@@ -66,11 +59,12 @@ app.get("/api", (req, res) => {
     });
 });
 
-// ----------------------------------
+// ==========================================
 // STUDENT LOGIN
-// ----------------------------------
+// ==========================================
 
 app.post("/api/student-login", async (req, res) => {
+
     const { student_id, password } = req.body;
 
     if (!student_id || !password) {
@@ -95,6 +89,7 @@ app.post("/api/student-login", async (req, res) => {
     `;
 
     db.query(sql, [student_id], async (err, results) => {
+
         if (err) {
             console.error("Student login database error:", err);
 
@@ -114,6 +109,7 @@ app.post("/api/student-login", async (req, res) => {
         const student = results[0];
 
         try {
+
             const passwordMatch = await bcrypt.compare(
                 password,
                 student.password
@@ -129,6 +125,7 @@ app.post("/api/student-login", async (req, res) => {
             res.json({
                 success: true,
                 message: "Student login successful",
+
                 student: {
                     id: student.id,
                     student_id: student.student_id,
@@ -140,7 +137,11 @@ app.post("/api/student-login", async (req, res) => {
             });
 
         } catch (error) {
-            console.error("Student password comparison error:", error);
+
+            console.error(
+                "Student password comparison error:",
+                error
+            );
 
             return res.status(500).json({
                 success: false,
@@ -150,11 +151,12 @@ app.post("/api/student-login", async (req, res) => {
     });
 });
 
-// ----------------------------------
-// PROFESSOR LOGIN
-// ----------------------------------
+// ==========================================
+// FACULTY LOGIN
+// ==========================================
 
 app.post("/api/professor-login", async (req, res) => {
+
     const { professor_id, password } = req.body;
 
     if (!professor_id || !password) {
@@ -177,8 +179,12 @@ app.post("/api/professor-login", async (req, res) => {
     `;
 
     db.query(sql, [professor_id], async (err, results) => {
+
         if (err) {
-            console.error("Professor login database error:", err);
+            console.error(
+                "Professor login database error:",
+                err
+            );
 
             return res.status(500).json({
                 success: false,
@@ -196,6 +202,7 @@ app.post("/api/professor-login", async (req, res) => {
         const professor = results[0];
 
         try {
+
             const passwordMatch = await bcrypt.compare(
                 password,
                 professor.password
@@ -211,6 +218,7 @@ app.post("/api/professor-login", async (req, res) => {
             res.json({
                 success: true,
                 message: "Professor login successful",
+
                 professor: {
                     id: professor.id,
                     professor_id: professor.professor_id,
@@ -220,7 +228,11 @@ app.post("/api/professor-login", async (req, res) => {
             });
 
         } catch (error) {
-            console.error("Professor password comparison error:", error);
+
+            console.error(
+                "Professor password comparison error:",
+                error
+            );
 
             return res.status(500).json({
                 success: false,
@@ -230,11 +242,13 @@ app.post("/api/professor-login", async (req, res) => {
     });
 });
 
-// ----------------------------------
+// ==========================================
 // GET ATTENDANCE
-// ----------------------------------
+// Used by Faculty
+// ==========================================
 
 app.get("/api/attendance", (req, res) => {
+
     const { date } = req.query;
 
     if (!date) {
@@ -265,8 +279,13 @@ app.get("/api/attendance", (req, res) => {
     `;
 
     db.query(sql, [date], (err, results) => {
+
         if (err) {
-            console.error("Attendance fetch error:", err);
+
+            console.error(
+                "Attendance fetch error:",
+                err
+            );
 
             return res.status(500).json({
                 success: false,
@@ -281,11 +300,183 @@ app.get("/api/attendance", (req, res) => {
     });
 });
 
-// ----------------------------------
-// MARK ATTENDANCE
-// ----------------------------------
+// ==========================================
+// STUDENT GPS ATTENDANCE
+// ==========================================
+
+app.post("/api/attendance", (req, res) => {
+
+    const {
+        student_id,
+        latitude,
+        longitude,
+        accuracy,
+        distance,
+        status
+    } = req.body;
+
+    if (
+        !student_id ||
+        latitude === undefined ||
+        longitude === undefined ||
+        accuracy === undefined ||
+        distance === undefined ||
+        !status
+    ) {
+        return res.status(400).json({
+            success: false,
+            message: "Attendance data is incomplete"
+        });
+    }
+
+    // --------------------------------------
+    // CHECK STUDENT
+    // --------------------------------------
+
+    const studentSql = `
+        SELECT student_id
+        FROM students
+        WHERE student_id = ?
+        LIMIT 1
+    `;
+
+    db.query(
+        studentSql,
+        [student_id],
+        (studentErr, studentResults) => {
+
+            if (studentErr) {
+
+                console.error(
+                    "Student lookup error:",
+                    studentErr
+                );
+
+                return res.status(500).json({
+                    success: false,
+                    message: "Database error"
+                });
+            }
+
+            if (studentResults.length === 0) {
+
+                return res.status(404).json({
+                    success: false,
+                    message: "Student ID not found"
+                });
+            }
+
+            // --------------------------------------
+            // CHECK DUPLICATE ATTENDANCE
+            // --------------------------------------
+
+            const duplicateSql = `
+                SELECT id
+                FROM attendance
+                WHERE student_id = ?
+                AND attendance_date = CURDATE()
+                LIMIT 1
+            `;
+
+            db.query(
+                duplicateSql,
+                [student_id],
+                (duplicateErr, duplicateResults) => {
+
+                    if (duplicateErr) {
+
+                        console.error(
+                            "Duplicate attendance check error:",
+                            duplicateErr
+                        );
+
+                        return res.status(500).json({
+                            success: false,
+                            message: "Database error"
+                        });
+                    }
+
+                    if (duplicateResults.length > 0) {
+
+                        return res.status(400).json({
+                            success: false,
+                            message: "Attendance already marked today"
+                        });
+                    }
+
+                    // --------------------------------------
+                    // INSERT GPS ATTENDANCE
+                    // --------------------------------------
+
+                    const insertSql = `
+                        INSERT INTO attendance (
+                            student_id,
+                            attendance_date,
+                            attendance_time,
+                            latitude,
+                            longitude,
+                            accuracy,
+                            distance,
+                            status
+                        )
+                        VALUES (
+                            ?,
+                            CURDATE(),
+                            CURTIME(),
+                            ?,
+                            ?,
+                            ?,
+                            ?,
+                            ?
+                        )
+                    `;
+
+                    const values = [
+                        student_id,
+                        latitude,
+                        longitude,
+                        accuracy,
+                        distance,
+                        status
+                    ];
+
+                    db.query(
+                        insertSql,
+                        values,
+                        (insertErr, result) => {
+
+                            if (insertErr) {
+
+                                console.error(
+                                    "GPS attendance insert error:",
+                                    insertErr
+                                );
+
+                                return res.status(500).json({
+                                    success: false,
+                                    message: "Unable to save attendance"
+                                });
+                            }
+
+                            return res.json({
+                                success: true,
+                                message: "Attendance marked successfully",
+                                attendance_id: result.insertId
+                            });
+                        }
+                    );
+                }
+            );
+        }
+    );
+});
+
+// ==========================================
+// FACULTY MANUAL MARK ATTENDANCE
+// ==========================================
 
 app.post("/api/mark-attendance", (req, res) => {
+
     const {
         student_id,
         attendance_date,
@@ -305,7 +496,10 @@ app.post("/api/mark-attendance", (req, res) => {
         });
     }
 
-    // Check whether student exists
+    // --------------------------------------
+    // CHECK STUDENT
+    // --------------------------------------
+
     const studentSql = `
         SELECT student_id
         FROM students
@@ -313,116 +507,143 @@ app.post("/api/mark-attendance", (req, res) => {
         LIMIT 1
     `;
 
-    db.query(studentSql, [student_id], (studentErr, studentResults) => {
-        if (studentErr) {
-            console.error("Student lookup error:", studentErr);
+    db.query(
+        studentSql,
+        [student_id],
+        (studentErr, studentResults) => {
 
-            return res.status(500).json({
-                success: false,
-                message: "Database error"
-            });
-        }
+            if (studentErr) {
 
-        if (studentResults.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: "Student ID not found"
-            });
-        }
+                console.error(
+                    "Student lookup error:",
+                    studentErr
+                );
 
-        // Check if attendance already exists
-        const duplicateSql = `
-            SELECT id
-            FROM attendance
-            WHERE student_id = ?
-            AND attendance_date = ?
-            LIMIT 1
-        `;
+                return res.status(500).json({
+                    success: false,
+                    message: "Database error"
+                });
+            }
 
-        db.query(
-            duplicateSql,
-            [student_id, attendance_date],
-            (duplicateErr, duplicateResults) => {
+            if (studentResults.length === 0) {
 
-                if (duplicateErr) {
-                    console.error(
-                        "Duplicate attendance check error:",
-                        duplicateErr
-                    );
+                return res.status(404).json({
+                    success: false,
+                    message: "Student ID not found"
+                });
+            }
 
-                    return res.status(500).json({
-                        success: false,
-                        message: "Database error"
-                    });
-                }
+            // --------------------------------------
+            // CHECK DUPLICATE
+            // --------------------------------------
 
-                if (duplicateResults.length > 0) {
-                    return res.status(400).json({
-                        success: false,
-                        message: "Attendance already marked for this student on this date"
-                    });
-                }
+            const duplicateSql = `
+                SELECT id
+                FROM attendance
+                WHERE student_id = ?
+                AND attendance_date = ?
+                LIMIT 1
+            `;
 
-                // Insert attendance
-                const insertSql = `
-                    INSERT INTO attendance (
+            db.query(
+                duplicateSql,
+                [
+                    student_id,
+                    attendance_date
+                ],
+                (duplicateErr, duplicateResults) => {
+
+                    if (duplicateErr) {
+
+                        console.error(
+                            "Duplicate attendance check error:",
+                            duplicateErr
+                        );
+
+                        return res.status(500).json({
+                            success: false,
+                            message: "Database error"
+                        });
+                    }
+
+                    if (duplicateResults.length > 0) {
+
+                        return res.status(400).json({
+                            success: false,
+                            message:
+                                "Attendance already marked for this student on this date"
+                        });
+                    }
+
+                    // --------------------------------------
+                    // INSERT MANUAL ATTENDANCE
+                    // --------------------------------------
+
+                    const insertSql = `
+                        INSERT INTO attendance (
+                            student_id,
+                            attendance_date,
+                            attendance_time,
+                            latitude,
+                            longitude,
+                            accuracy,
+                            distance,
+                            status
+                        )
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    `;
+
+                    const values = [
                         student_id,
                         attendance_date,
                         attendance_time,
-                        latitude,
-                        longitude,
-                        accuracy,
-                        distance,
+                        0,
+                        0,
+                        0,
+                        0,
                         status
-                    )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                `;
+                    ];
 
-                const values = [
-                    student_id,
-                    attendance_date,
-                    attendance_time,
-                    0,
-                    0,
-                    0,
-                    0,
-                    status
-                ];
+                    db.query(
+                        insertSql,
+                        values,
+                        (insertErr, result) => {
 
-                db.query(
-                    insertSql,
-                    values,
-                    (insertErr, result) => {
+                            if (insertErr) {
 
-                        if (insertErr) {
-                            console.error(
-                                "Attendance insert error:",
-                                insertErr
-                            );
+                                console.error(
+                                    "Attendance insert error:",
+                                    insertErr
+                                );
 
-                            return res.status(500).json({
-                                success: false,
-                                message: "Unable to mark attendance"
+                                return res.status(500).json({
+                                    success: false,
+                                    message:
+                                        "Unable to mark attendance"
+                                });
+                            }
+
+                            res.json({
+                                success: true,
+                                message:
+                                    "Attendance marked successfully",
+                                attendance_id:
+                                    result.insertId
                             });
                         }
-
-                        res.json({
-                            success: true,
-                            message: "Attendance marked successfully",
-                            attendance_id: result.insertId
-                        });
-                    }
-                );
-            }
-        );
-    });
+                    );
+                }
+            );
+        }
+    );
 });
 
-// ----------------------------------
+// ==========================================
 // DELETE ATTENDANCE
-// ----------------------------------
+// ==========================================
 
 app.delete("/api/attendance/:id", (req, res) => {
+
     const { id } = req.params;
 
     if (!id) {
@@ -438,8 +659,13 @@ app.delete("/api/attendance/:id", (req, res) => {
     `;
 
     db.query(sql, [id], (err, result) => {
+
         if (err) {
-            console.error("Attendance delete error:", err);
+
+            console.error(
+                "Attendance delete error:",
+                err
+            );
 
             return res.status(500).json({
                 success: false,
@@ -448,6 +674,7 @@ app.delete("/api/attendance/:id", (req, res) => {
         }
 
         if (result.affectedRows === 0) {
+
             return res.status(404).json({
                 success: false,
                 message: "Attendance record not found"
@@ -461,11 +688,12 @@ app.delete("/api/attendance/:id", (req, res) => {
     });
 });
 
-// ----------------------------------
+// ==========================================
 // UPDATE ATTENDANCE
-// ----------------------------------
+// ==========================================
 
 app.put("/api/attendance/:id", (req, res) => {
+
     const { id } = req.params;
 
     const {
@@ -481,7 +709,11 @@ app.put("/api/attendance/:id", (req, res) => {
         });
     }
 
-    if (!attendance_date || !attendance_time || !status) {
+    if (
+        !attendance_date ||
+        !attendance_time ||
+        !status
+    ) {
         return res.status(400).json({
             success: false,
             message: "Date, time and status are required"
@@ -508,7 +740,11 @@ app.put("/api/attendance/:id", (req, res) => {
         (err, result) => {
 
             if (err) {
-                console.error("Attendance update error:", err);
+
+                console.error(
+                    "Attendance update error:",
+                    err
+                );
 
                 return res.status(500).json({
                     success: false,
@@ -517,36 +753,41 @@ app.put("/api/attendance/:id", (req, res) => {
             }
 
             if (result.affectedRows === 0) {
+
                 return res.status(404).json({
                     success: false,
-                    message: "Attendance record not found"
+                    message:
+                        "Attendance record not found"
                 });
             }
 
             res.json({
                 success: true,
-                message: "Attendance updated successfully"
+                message:
+                    "Attendance updated successfully"
             });
         }
     );
 });
 
-// ----------------------------------
-// 404 API HANDLER
-// ----------------------------------
+// ==========================================
+// API 404
+// ==========================================
 
 app.use("/api", (req, res) => {
+
     res.status(404).json({
         success: false,
         message: "API endpoint not found"
     });
 });
 
-// ----------------------------------
+// ==========================================
 // START SERVER
-// ----------------------------------
+// ==========================================
 
 app.listen(PORT, () => {
+
     console.log("----------------------------------");
     console.log("GPS Attendance Server Started");
     console.log("----------------------------------");

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Mark Attendance - GPS Attendance</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="dashboard-container">
+
+        <h1>GPS Attendance</h1>
+
+        <h2>Mark My Attendance</h2>
+
+        <label for="studentId">
+            Student ID
+        </label>
+
+        <br>
+
+        <input
+            type="text"
+            id="studentId"
+            placeholder="Student ID"
+            readonly
+        >
+
+        <br><br>
+
+        <h3>GPS Location</h3>
+
+        <p>
+            Latitude:
+            <strong id="latitude">Waiting...</strong>
+        </p>
+
+        <p>
+            Longitude:
+            <strong id="longitude">Waiting...</strong>
+        </p>
+
+        <p>
+            Accuracy:
+            <strong id="accuracy">Waiting...</strong>
+        </p>
+
+        <p>
+            Distance from College:
+            <strong id="distance">Waiting...</strong>
+        </p>
+
+        <br>
+
+        <p id="status">
+            Getting your location...
+        </p>
+
+        <button id="attendanceBtn" type="button">
+            Mark Attendance
+        </button>
+
+        <br><br>
+
+        <button
+            type="button"
+            onclick="window.location.href='/index.html'"
+        >
+            Back to Student Dashboard
+        </button>
+
+    </div>
+
+    <script src="attendance.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const studentData =
+                localStorage.getItem("student");
+
+            if (!studentData) {
+                window.location.href = "/login.html";
+                return;
+            }
+
+            try {
+
+                const student =
+                    JSON.parse(studentData);
+
+                const studentId =
+                    document.getElementById("studentId");
+
+                if (student.student_id) {
+                    studentId.value =
+                        student.student_id;
+                }
+
+            } catch (error) {
+
+                console.error(
+                    "Student data error:",
+                    error
+                );
+
+                localStorage.removeItem("student");
+
+                window.location.href =
+                    "/login.html";
+            }
+
+        });
+    </script>
+
+</body>
+
+</html>

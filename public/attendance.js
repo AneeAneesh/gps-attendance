@@ -13,15 +13,18 @@ const MAX_GPS_ACCURACY = 100;
 
 
 // ==========================================
-// CALCULATE DISTANCE BETWEEN GPS COORDINATES
+// CALCULATE DISTANCE
 // ==========================================
 
 function calculateDistance(lat1, lon1, lat2, lon2) {
 
     const R = 6371000;
 
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const dLat =
+        (lat2 - lat1) * Math.PI / 180;
+
+    const dLon =
+        (lon2 - lon1) * Math.PI / 180;
 
     const a =
         Math.sin(dLat / 2) * Math.sin(dLat / 2) +
@@ -41,13 +44,10 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 
 
 // ==========================================
-// MARK ATTENDANCE
+// GET CURRENT LOCATION
 // ==========================================
 
-function markAttendance() {
-
-    const studentIdElement =
-        document.getElementById("studentId");
+function getLocation() {
 
     const status =
         document.getElementById("status");
@@ -55,48 +55,22 @@ function markAttendance() {
     const button =
         document.getElementById("attendanceBtn");
 
-
-    // Get Student ID
-    const studentId =
-        studentIdElement.value.trim();
-
-
-    // Check Student ID
-    if (studentId === "") {
-
-        status.innerHTML =
-            "❌ Please enter Student ID";
-
-        return;
-    }
-
-
-    // Check GPS support
     if (!navigator.geolocation) {
 
-        status.innerHTML =
-            "❌ GPS is not supported by this browser.";
+        status.innerText =
+            "GPS is not supported by this browser.";
 
         return;
     }
 
+    status.innerText =
+        "Getting your location...";
 
     button.disabled = true;
 
-    button.innerHTML =
-        "📍 Getting Location...";
-
-    status.innerHTML =
-        "⏳ Checking GPS location...";
-
-
-    // ==========================================
-    // GET GPS LOCATION
-    // ==========================================
-
     navigator.geolocation.getCurrentPosition(
 
-        async function(position) {
+        function (position) {
 
             const latitude =
                 position.coords.latitude;
@@ -123,19 +97,199 @@ function markAttendance() {
 
 
             // ==========================================
-            // CHECK GPS ACCURACY
+            // CHECK ACCURACY
             // ==========================================
 
             if (accuracy > MAX_GPS_ACCURACY) {
 
-                status.innerHTML =
-                    "❌ GPS accuracy is too low. " +
+                status.innerText =
+                    "GPS accuracy is too low. " +
                     "Please enable precise location and try again.";
 
                 button.disabled = false;
 
-                button.innerHTML =
-                    "📍 Mark Attendance";
+                return;
+            }
+
+
+            // ==========================================
+            // CALCULATE DISTANCE
+            // ==========================================
+
+            const distance =
+                calculateDistance(
+                    latitude,
+                    longitude,
+                    COLLEGE_LATITUDE,
+                    COLLEGE_LONGITUDE
+                );
+
+            document.getElementById("distance").innerText =
+                distance.toFixed(2) + " meters";
+
+
+            // ==========================================
+            // CHECK COLLEGE RADIUS
+            // ==========================================
+
+            if (distance > ALLOWED_RADIUS) {
+
+                status.innerText =
+                    "Attendance Rejected - Outside College.";
+
+                button.disabled = false;
+
+                return;
+            }
+
+
+            // ==========================================
+            // STUDENT IS INSIDE COLLEGE
+            // ==========================================
+
+            status.innerText =
+                "You are inside the college area. " +
+                "Click Mark Attendance.";
+
+            button.disabled = false;
+
+        },
+
+        function (error) {
+
+            console.error(
+                "GPS Error:",
+                error
+            );
+
+            button.disabled = false;
+
+            if (error.code === 1) {
+
+                status.innerText =
+                    "Location permission denied. " +
+                    "Please allow location access.";
+
+            } else if (error.code === 2) {
+
+                status.innerText =
+                    "Location unavailable. " +
+                    "Please turn on GPS/location services.";
+
+            } else if (error.code === 3) {
+
+                status.innerText =
+                    "Location request timed out. " +
+                    "Please try again.";
+
+            } else {
+
+                status.innerText =
+                    "Unable to get your location.";
+            }
+
+        },
+
+        {
+            enableHighAccuracy: true,
+            timeout: 15000,
+            maximumAge: 0
+        }
+    );
+}
+
+
+// ==========================================
+// MARK ATTENDANCE
+// ==========================================
+
+async function markAttendance() {
+
+    const studentIdElement =
+        document.getElementById("studentId");
+
+    const status =
+        document.getElementById("status");
+
+    const button =
+        document.getElementById("attendanceBtn");
+
+
+    const studentId =
+        studentIdElement.value.trim();
+
+
+    // ==========================================
+    // CHECK STUDENT ID
+    // ==========================================
+
+    if (studentId === "") {
+
+        status.innerText =
+            "Please enter Student ID.";
+
+        return;
+    }
+
+
+    // ==========================================
+    // GET GPS AGAIN
+    // ==========================================
+
+    if (!navigator.geolocation) {
+
+        status.innerText =
+            "GPS is not supported by this browser.";
+
+        return;
+    }
+
+
+    status.innerText =
+        "Getting your location...";
+
+    button.disabled = true;
+
+
+    navigator.geolocation.getCurrentPosition(
+
+        async function (position) {
+
+            const latitude =
+                position.coords.latitude;
+
+            const longitude =
+                position.coords.longitude;
+
+            const accuracy =
+                position.coords.accuracy;
+
+
+            // ==========================================
+            // DISPLAY GPS
+            // ==========================================
+
+            document.getElementById("latitude").innerText =
+                latitude.toFixed(6);
+
+            document.getElementById("longitude").innerText =
+                longitude.toFixed(6);
+
+            document.getElementById("accuracy").innerText =
+                accuracy.toFixed(2) + " meters";
+
+
+            // ==========================================
+            // CHECK ACCURACY
+            // ==========================================
+
+            if (accuracy > MAX_GPS_ACCURACY) {
+
+                status.innerText =
+                    "GPS accuracy is too low. " +
+                    "Please enable precise location.";
+
+                button.disabled = false;
 
                 return;
             }
@@ -164,24 +318,21 @@ function markAttendance() {
 
             if (distance > ALLOWED_RADIUS) {
 
-                status.innerHTML =
-                    "❌ Attendance Rejected - Outside College";
+                status.innerText =
+                    "Attendance Rejected - Outside College.";
 
                 button.disabled = false;
-
-                button.innerHTML =
-                    "📍 Mark Attendance";
 
                 return;
             }
 
 
             // ==========================================
-            // STUDENT IS INSIDE COLLEGE
+            // SEND ATTENDANCE TO SERVER
             // ==========================================
 
-            status.innerHTML =
-                "⏳ Saving attendance...";
+            status.innerText =
+                "Saving attendance...";
 
 
             try {
@@ -218,93 +369,160 @@ function markAttendance() {
                     await response.json();
 
 
-                // ==========================================
-                // SERVER RESPONSE
-                // ==========================================
+                console.log(
+                    "Attendance response:",
+                    data
+                );
 
-                if (response.ok) {
 
-                    status.innerHTML =
-                        "✅ Attendance Marked Successfully";
+                if (response.ok && data.success) {
+
+                    status.innerText =
+                        "Attendance Marked Successfully!";
 
                 } else {
 
-                    status.innerHTML =
-                        "❌ " + (
-                            data.message ||
-                            "Failed to mark attendance"
-                        );
+                    status.innerText =
+                        data.message ||
+                        "Unable to mark attendance.";
 
                 }
 
-
             } catch (error) {
 
-                console.error(error);
+                console.error(
+                    "Attendance error:",
+                    error
+                );
 
-                status.innerHTML =
-                    "❌ Server connection error.";
+                status.innerText =
+                    "Unable to connect to server.";
 
             }
 
 
             button.disabled = false;
 
-            button.innerHTML =
-                "📍 Mark Attendance";
-
         },
 
+        function (error) {
 
-        // ==========================================
-        // GPS ERROR
-        // ==========================================
+            console.error(
+                "GPS Error:",
+                error
+            );
 
-        function(error) {
+            button.disabled = false;
 
-            console.error(error);
-
-            let message =
-                "❌ Unable to get GPS location.";
 
             if (error.code === 1) {
 
-                message =
-                    "❌ Location permission denied. " +
+                status.innerText =
+                    "Location permission denied. " +
                     "Please allow location access.";
 
             } else if (error.code === 2) {
 
-                message =
-                    "❌ GPS location unavailable.";
+                status.innerText =
+                    "Location unavailable. " +
+                    "Please turn on GPS/location services.";
 
             } else if (error.code === 3) {
 
-                message =
-                    "❌ GPS request timed out. Please try again.";
+                status.innerText =
+                    "Location request timed out. " +
+                    "Please try again.";
+
+            } else {
+
+                status.innerText =
+                    "Unable to get your location.";
 
             }
 
-            status.innerHTML = message;
-
-            button.disabled = false;
-
-            button.innerHTML =
-                "📍 Mark Attendance";
-
         },
-
-
-        // ==========================================
-        // GPS OPTIONS
-        // ==========================================
 
         {
             enableHighAccuracy: true,
-            timeout: 20000,
+            timeout: 15000,
             maximumAge: 0
         }
 
     );
 
 }
+
+
+// ==========================================
+// PAGE LOAD
+// ==========================================
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const studentData =
+            localStorage.getItem("student");
+
+        if (!studentData) {
+
+            window.location.href =
+                "/login.html";
+
+            return;
+        }
+
+
+        const studentId =
+            document.getElementById("studentId");
+
+        try {
+
+            const student =
+                JSON.parse(studentData);
+
+            if (student.student_id) {
+
+                studentId.value =
+                    student.student_id;
+
+            }
+
+        } catch (error) {
+
+            console.error(
+                "Student data error:",
+                error
+            );
+
+            localStorage.removeItem("student");
+
+            window.location.href =
+                "/login.html";
+
+            return;
+        }
+
+
+        const button =
+            document.getElementById("attendanceBtn");
+
+
+        // ==========================================
+        // BUTTON CLICK
+        // ==========================================
+
+        button.addEventListener(
+            "click",
+            markAttendance
+        );
+
+
+        // ==========================================
+        // GET LOCATION WHEN PAGE OPENS
+        // ==========================================
+
+        getLocation();
+
+    }
+);
