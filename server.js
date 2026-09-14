@@ -11,9 +11,11 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(express.static(path.join(__dirname, "public"), {
-    index: false
-}));
+app.use(
+    express.static(path.join(__dirname, "public"), {
+        index: false
+    })
+);
 
 // ==========================================
 // MYSQL CONNECTION
@@ -239,6 +241,61 @@ app.post("/api/professor-login", async (req, res) => {
                 message: "Server error"
             });
         }
+    });
+});
+
+// ==========================================
+// GET STUDENT ATTENDANCE
+// Used by Student
+// ==========================================
+
+app.get("/api/student-attendance", (req, res) => {
+
+    const { student_id } = req.query;
+
+    if (!student_id) {
+        return res.status(400).json({
+            success: false,
+            message: "Student ID is required"
+        });
+    }
+
+    const sql = `
+        SELECT
+            id,
+            student_id,
+            attendance_date,
+            attendance_time,
+            latitude,
+            longitude,
+            accuracy,
+            distance,
+            status,
+            created_at
+        FROM attendance
+        WHERE student_id = ?
+        ORDER BY attendance_date DESC, attendance_time DESC
+    `;
+
+    db.query(sql, [student_id], (err, results) => {
+
+        if (err) {
+
+            console.error(
+                "Student attendance fetch error:",
+                err
+            );
+
+            return res.status(500).json({
+                success: false,
+                message: "Database error"
+            });
+        }
+
+        res.json({
+            success: true,
+            attendance: results
+        });
     });
 });
 

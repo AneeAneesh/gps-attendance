@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Attendance - GPS Attendance</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="dashboard-container">
+
+    <h1>GPS Attendance</h1>
+    <h2>My Attendance</h2>
+
+    <p>
+        Student:
+        <strong id="studentName">-</strong>
+    </p>
+
+    <p>
+        Student ID:
+        <strong id="studentId">-</strong>
+    </p>
+
+    <br>
+
+    <button id="loadAttendanceBtn">
+        Refresh Attendance
+    </button>
+
+    <br><br>
+
+    <p id="status">Loading attendance...</p>
+
+    <div id="attendanceContainer"></div>
+
+    <br>
+
+    <button onclick="window.location.href='/index.html'">
+        Back to Dashboard
+    </button>
+
+    <br><br>
+
+    <button id="logoutBtn">
+        Logout
+    </button>
+
+</div>
+
+<script src="view-attendance.js"></script>
+
+</body>
+</html>
