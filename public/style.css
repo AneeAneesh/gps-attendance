@@ -112,3 +112,94 @@ button:disabled {
     margin: 8px 0;
     color: #475569;
 }
+/* ----------------------------------
+   TOP NAVIGATION BAR
+---------------------------------- */
+
+.top-navbar {
+    width: 100%;
+    box-sizing: border-box;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 15px 30px;
+
+    background: rgba(0, 0, 0, 0.25);
+
+    margin-bottom: 30px;
+}
+
+
+.nav-logo {
+    color: white;
+
+    font-size: 20px;
+
+    font-weight: bold;
+}
+
+
+.nav-links {
+    display: flex;
+
+    gap: 10px;
+}
+
+
+.nav-links a {
+    color: white;
+
+    text-decoration: none;
+
+    padding: 10px 16px;
+
+    border-radius: 6px;
+
+    background: rgba(255, 255, 255, 0.15);
+
+    font-size: 14px;
+}
+
+
+.nav-links a:hover {
+    background: rgba(255, 255, 255, 0.30);
+}
+
+
+.nav-links a.active {
+    background: #ffffff;
+
+    color: #333;
+
+    font-weight: bold;
+}
+
+
+/* ----------------------------------
+   MOBILE NAVIGATION
+---------------------------------- */
+
+@media (max-width: 600px) {
+
+    .top-navbar {
+        flex-direction: column;
+
+        gap: 12px;
+
+        text-align: center;
+
+        padding: 15px;
+    }
+
+
+    .nav-links {
+        width: 100%;
+
+        justify-content: center;
+
+        flex-wrap: wrap;
+    }
+
+}
