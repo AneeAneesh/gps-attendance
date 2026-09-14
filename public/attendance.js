@@ -1,12 +1,21 @@
-// College GPS coordinates
-const COLLEGE_LATITUDE = 10.778700;
-const COLLEGE_LONGITUDE = 76.693100;
+// ==========================================
+// COLLEGE GPS LOCATION
+// ==========================================
+
+const COLLEGE_LATITUDE = 12.2538430;
+const COLLEGE_LONGITUDE = 75.1389692;
 
 // Allowed radius in meters
 const ALLOWED_RADIUS = 100;
 
+// Maximum acceptable GPS accuracy
+const MAX_GPS_ACCURACY = 100;
 
-// Calculate distance between two GPS coordinates
+
+// ==========================================
+// CALCULATE DISTANCE BETWEEN GPS COORDINATES
+// ==========================================
+
 function calculateDistance(lat1, lon1, lat2, lon2) {
 
     const R = 6371000;
@@ -21,13 +30,20 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
         Math.sin(dLon / 2) *
         Math.sin(dLon / 2);
 
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const c =
+        2 * Math.atan2(
+            Math.sqrt(a),
+            Math.sqrt(1 - a)
+        );
 
     return R * c;
 }
 
 
-// Mark Attendance
+// ==========================================
+// MARK ATTENDANCE
+// ==========================================
+
 function markAttendance() {
 
     const studentIdElement =
@@ -74,7 +90,10 @@ function markAttendance() {
         "⏳ Checking GPS location...";
 
 
-    // Get GPS location
+    // ==========================================
+    // GET GPS LOCATION
+    // ==========================================
+
     navigator.geolocation.getCurrentPosition(
 
         async function(position) {
@@ -89,7 +108,10 @@ function markAttendance() {
                 position.coords.accuracy;
 
 
-            // Display GPS information
+            // ==========================================
+            // DISPLAY GPS INFORMATION
+            // ==========================================
+
             document.getElementById("latitude").innerText =
                 latitude.toFixed(6);
 
@@ -100,7 +122,29 @@ function markAttendance() {
                 accuracy.toFixed(2) + " meters";
 
 
-            // Calculate distance
+            // ==========================================
+            // CHECK GPS ACCURACY
+            // ==========================================
+
+            if (accuracy > MAX_GPS_ACCURACY) {
+
+                status.innerHTML =
+                    "❌ GPS accuracy is too low. " +
+                    "Please enable precise location and try again.";
+
+                button.disabled = false;
+
+                button.innerHTML =
+                    "📍 Mark Attendance";
+
+                return;
+            }
+
+
+            // ==========================================
+            // CALCULATE DISTANCE
+            // ==========================================
+
             const distance =
                 calculateDistance(
                     latitude,
@@ -114,7 +158,10 @@ function markAttendance() {
                 distance.toFixed(2) + " meters";
 
 
-            // Check college radius
+            // ==========================================
+            // CHECK COLLEGE RADIUS
+            // ==========================================
+
             if (distance > ALLOWED_RADIUS) {
 
                 status.innerHTML =
@@ -129,7 +176,10 @@ function markAttendance() {
             }
 
 
-            // Student is inside college
+            // ==========================================
+            // STUDENT IS INSIDE COLLEGE
+            // ==========================================
+
             status.innerHTML =
                 "⏳ Saving attendance...";
 
@@ -148,10 +198,15 @@ function markAttendance() {
                         body: JSON.stringify({
 
                             student_id: studentId,
+
                             latitude: latitude,
+
                             longitude: longitude,
+
                             accuracy: accuracy,
+
                             distance: distance,
+
                             status: "Present"
 
                         })
@@ -163,6 +218,10 @@ function markAttendance() {
                     await response.json();
 
 
+                // ==========================================
+                // SERVER RESPONSE
+                // ==========================================
+
                 if (response.ok) {
 
                     status.innerHTML =
@@ -171,7 +230,10 @@ function markAttendance() {
                 } else {
 
                     status.innerHTML =
-                        "❌ " + data.message;
+                        "❌ " + (
+                            data.message ||
+                            "Failed to mark attendance"
+                        );
 
                 }
 
@@ -194,12 +256,36 @@ function markAttendance() {
         },
 
 
+        // ==========================================
+        // GPS ERROR
+        // ==========================================
+
         function(error) {
 
             console.error(error);
 
-            status.innerHTML =
+            let message =
                 "❌ Unable to get GPS location.";
+
+            if (error.code === 1) {
+
+                message =
+                    "❌ Location permission denied. " +
+                    "Please allow location access.";
+
+            } else if (error.code === 2) {
+
+                message =
+                    "❌ GPS location unavailable.";
+
+            } else if (error.code === 3) {
+
+                message =
+                    "❌ GPS request timed out. Please try again.";
+
+            }
+
+            status.innerHTML = message;
 
             button.disabled = false;
 
@@ -208,9 +294,14 @@ function markAttendance() {
 
         },
 
+
+        // ==========================================
+        // GPS OPTIONS
+        // ==========================================
+
         {
             enableHighAccuracy: true,
-            timeout: 15000,
+            timeout: 20000,
             maximumAge: 0
         }
 
