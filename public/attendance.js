@@ -1,29 +1,37 @@
-// ==========================================
-// GPS STUDENT ATTENDANCE SYSTEM
-// STEP 2 - NODE.JS BACKEND
-// ==========================================
-
-
 // College GPS coordinates
-// Temporary coordinates
+const COLLEGE_LATITUDE = 10.778700;
+const COLLEGE_LONGITUDE = 76.693100;
 
-const COLLEGE_LATITUDE = 12.253954 ;
-const COLLEGE_LONGITUDE = 75.138827;
-
-
-// Allowed radius
-
+// Allowed radius in meters
 const ALLOWED_RADIUS = 100;
 
 
-// ==========================================
-// MARK ATTENDANCE
-// ==========================================
+// Calculate distance between two GPS coordinates
+function calculateDistance(lat1, lon1, lat2, lon2) {
 
+    const R = 6371000;
+
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) *
+        Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c;
+}
+
+
+// Mark Attendance
 function markAttendance() {
 
-    const studentId =
-        document.getElementById("studentId").value.trim();
+    const studentIdElement =
+        document.getElementById("studentId");
 
     const status =
         document.getElementById("status");
@@ -32,8 +40,12 @@ function markAttendance() {
         document.getElementById("attendanceBtn");
 
 
-    // Check Student ID
+    // Get Student ID
+    const studentId =
+        studentIdElement.value.trim();
 
+
+    // Check Student ID
     if (studentId === "") {
 
         status.innerHTML =
@@ -43,8 +55,7 @@ function markAttendance() {
     }
 
 
-    // Check browser GPS
-
+    // Check GPS support
     if (!navigator.geolocation) {
 
         status.innerHTML =
@@ -59,13 +70,11 @@ function markAttendance() {
     button.innerHTML =
         "📍 Getting Location...";
 
-
     status.innerHTML =
         "⏳ Checking GPS location...";
 
 
-    // Get GPS
-
+    // Get GPS location
     navigator.geolocation.getCurrentPosition(
 
         async function(position) {
@@ -80,8 +89,7 @@ function markAttendance() {
                 position.coords.accuracy;
 
 
-            // Display GPS
-
+            // Display GPS information
             document.getElementById("latitude").innerText =
                 latitude.toFixed(6);
 
@@ -93,16 +101,12 @@ function markAttendance() {
 
 
             // Calculate distance
-
             const distance =
                 calculateDistance(
-
                     latitude,
                     longitude,
-
                     COLLEGE_LATITUDE,
                     COLLEGE_LONGITUDE
-
                 );
 
 
@@ -110,10 +114,7 @@ function markAttendance() {
                 distance.toFixed(2) + " meters";
 
 
-            // ======================================
-            // CHECK COLLEGE RADIUS
-            // ======================================
-
+            // Check college radius
             if (distance > ALLOWED_RADIUS) {
 
                 status.innerHTML =
@@ -128,9 +129,10 @@ function markAttendance() {
             }
 
 
-            // ======================================
-            // SEND DATA TO NODE.JS
-            // ======================================
+            // Student is inside college
+            status.innerHTML =
+                "⏳ Saving attendance...";
+
 
             try {
 
@@ -145,49 +147,41 @@ function markAttendance() {
 
                         body: JSON.stringify({
 
-                            studentId: studentId,
-
+                            student_id: studentId,
                             latitude: latitude,
-
                             longitude: longitude,
-
                             accuracy: accuracy,
-
-                            distance: distance
+                            distance: distance,
+                            status: "Present"
 
                         })
 
                     });
 
 
-                const result =
+                const data =
                     await response.json();
 
 
-                // ======================================
-                // SERVER RESPONSE
-                // ======================================
-
-                if (result.success) {
+                if (response.ok) {
 
                     status.innerHTML =
-                        "✅ " + result.message;
+                        "✅ Attendance Marked Successfully";
 
                 } else {
 
                     status.innerHTML =
-                        "❌ " + result.message;
+                        "❌ " + data.message;
 
                 }
 
-            }
 
-            catch (error) {
+            } catch (error) {
 
                 console.error(error);
 
                 status.innerHTML =
-                    "❌ Unable to connect to server.";
+                    "❌ Server connection error.";
 
             }
 
@@ -202,105 +196,24 @@ function markAttendance() {
 
         function(error) {
 
+            console.error(error);
+
+            status.innerHTML =
+                "❌ Unable to get GPS location.";
+
             button.disabled = false;
 
             button.innerHTML =
                 "📍 Mark Attendance";
 
-
-            if (error.code === 1) {
-
-                status.innerHTML =
-                    "❌ Location permission denied.";
-
-            }
-
-            else if (error.code === 2) {
-
-                status.innerHTML =
-                    "❌ Location unavailable.";
-
-            }
-
-            else if (error.code === 3) {
-
-                status.innerHTML =
-                    "❌ GPS request timed out.";
-
-            }
-
-            else {
-
-                status.innerHTML =
-                    "❌ Unable to get GPS location.";
-
-            }
-
         },
 
-
         {
-
             enableHighAccuracy: true,
-
-            timeout: 10000,
-
+            timeout: 15000,
             maximumAge: 0
-
         }
 
     );
 
-}
-
-
-// ==========================================
-// HAVERSINE DISTANCE FORMULA
-// ==========================================
-
-function calculateDistance(
-    lat1,
-    lon1,
-    lat2,
-    lon2
-) {
-
-    const earthRadius = 6371000;
-
-
-    const lat1Radians =
-        lat1 * Math.PI / 180;
-
-    const lat2Radians =
-        lat2 * Math.PI / 180;
-
-
-    const differenceLatitude =
-        (lat2 - lat1) * Math.PI / 180;
-
-    const differenceLongitude =
-        (lon2 - lon1) * Math.PI / 180;
-
-
-    const a =
-        Math.sin(differenceLatitude / 2) *
-        Math.sin(differenceLatitude / 2)
-
-        +
-
-        Math.cos(lat1Radians) *
-        Math.cos(lat2Radians) *
-
-        Math.sin(differenceLongitude / 2) *
-        Math.sin(differenceLongitude / 2);
-
-
-    const c =
-        2 * Math.atan2(
-            Math.sqrt(a),
-            Math.sqrt(1 - a)
-        );
-
-
-    return earthRadius * c;
 }
