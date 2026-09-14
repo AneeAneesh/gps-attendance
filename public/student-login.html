@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Student Login</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>🎓 Student Login</h1>
+
+    <form id="studentLoginForm">
+
+        <label>Student ID</label>
+
+        <input
+            type="text"
+            id="studentId"
+            placeholder="Enter Student ID"
+            required
+        >
+
+        <label>Password</label>
+
+        <input
+            type="password"
+            id="password"
+            placeholder="Enter Password"
+            required
+        >
+
+        <button type="submit">
+            🔐 Login
+        </button>
+
+    </form>
+
+    <p id="message"></p>
+
+    <p>
+        <a href="/login.html">← Back to Login</a>
+    </p>
+
+</div>
+
+<script>
+
+document
+.getElementById("studentLoginForm")
+.addEventListener("submit", async function(event) {
+
+    event.preventDefault();
+
+    const studentId =
+        document.getElementById("studentId").value.trim();
+
+    const password =
+        document.getElementById("password").value;
+
+    const message =
+        document.getElementById("message");
+
+    message.innerText = "⏳ Logging in...";
+
+    try {
+
+        const response = await fetch("/api/student-login", {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                student_id: studentId,
+                password: password
+            })
+
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+
+            window.location.href =
+                "/student-dashboard.html";
+
+        } else {
+
+            message.innerText =
+                "❌ " + data.message;
+
+        }
+
+    } catch (error) {
+
+        console.error(error);
+
+        message.innerText =
+            "❌ Server connection error.";
+
+    }
+
+});
+
+</script>
+
+</body>
+
+</html>

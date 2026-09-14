@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Mark Attendance - GPS Attendance</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="dashboard-container">
+
+        <h1>GPS Attendance</h1>
+
+        <h2>Mark Attendance</h2>
+
+        <form id="markAttendanceForm">
+
+            <label for="studentId">
+                Student ID
+            </label>
+
+            <input
+                type="text"
+                id="studentId"
+                placeholder="Enter Student ID"
+                required
+            >
+
+            <br><br>
+
+
+            <label for="attendanceDate">
+                Date
+            </label>
+
+            <input
+                type="date"
+                id="attendanceDate"
+                required
+            >
+
+            <br><br>
+
+
+            <label for="attendanceTime">
+                Time
+            </label>
+
+            <input
+                type="time"
+                id="attendanceTime"
+                required
+            >
+
+            <br><br>
+
+
+            <label for="status">
+                Status
+            </label>
+
+            <select id="status" required>
+
+                <option value="Present">
+                    Present
+                </option>
+
+                <option value="Absent">
+                    Absent
+                </option>
+
+            </select>
+
+            <br><br>
+
+
+            <button type="submit">
+                Mark Attendance
+            </button>
+
+        </form>
+
+
+        <p id="markAttendanceMessage"></p>
+
+
+        <br>
+
+        <button onclick="window.location.href='/faculty-dashboard.html'">
+            Back to Dashboard
+        </button>
+
+    </div>
+
+
+    <script src="faculty-mark-attendance.js"></script>
+
+</body>
+
+</html>

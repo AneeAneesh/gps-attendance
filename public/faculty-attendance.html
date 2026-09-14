@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>View Attendance - GPS Attendance</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="dashboard-container">
+
+        <h1>GPS Attendance</h1>
+
+        <h2>Student Attendance</h2>
+
+        <div>
+            <label for="attendanceDate">
+                Select Date:
+            </label>
+
+            <input
+                type="date"
+                id="attendanceDate"
+            >
+
+            <button onclick="loadAttendance()">
+                View Attendance
+            </button>
+        </div>
+
+        <br>
+
+        <div style="overflow-x:auto;">
+
+            <table border="1" cellpadding="10" id="attendanceTable">
+
+                <thead>
+                    <tr>
+                        <th>Student ID</th>
+                        <th>Name</th>
+                        <th>Course</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+
+                <tbody id="attendanceBody">
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <br>
+
+        <button onclick="window.location.href='/faculty-dashboard.html'">
+            Back to Dashboard
+        </button>
+
+        <p id="attendanceMessage"></p>
+
+    </div>
+
+    <script src="faculty-attendance.js"></script>
+
+</body>
+</html>

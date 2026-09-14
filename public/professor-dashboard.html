@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Professor Dashboard</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>👨‍🏫 Professor Dashboard</h1>
+
+    <h2>Attendance Records</h2>
+
+    <button onclick="loadAttendance()">
+        🔄 Refresh Attendance
+    </button>
+
+    <button onclick="logout()">
+        🚪 Logout
+    </button>
+
+    <br><br>
+
+    <div id="attendanceContainer">
+        Loading...
+    </div>
+
+</div>
+
+<script>
+
+async function loadAttendance() {
+
+    const container =
+        document.getElementById("attendanceContainer");
+
+    try {
+
+        const response =
+            await fetch("/api/attendance");
+
+        const data =
+            await response.json();
+
+        if (!response.ok) {
+
+            container.innerHTML =
+                "❌ Unable to load attendance.";
+
+            return;
+
+        }
+
+        if (data.length === 0) {
+
+            container.innerHTML =
+                "No attendance records found.";
+
+            return;
+
+        }
+
+        let html = `
+            <table border="1" cellpadding="8">
+                <tr>
+                    <th>Student ID</th>
+                    <th>Name</th>
+                    <th>Course</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Status</th>
+                </tr>
+        `;
+
+        data.forEach(record => {
+
+            html += `
+                <tr>
+                    <td>${record.student_id}</td>
+                    <td>${record.name}</td>
+                    <td>${record.course || ""}</td>
+                    <td>${record.attendance_date}</td>
+                    <td>${record.attendance_time}</td>
+                    <td>${record.status}</td>
+                </tr>
+            `;
+
+        });
+
+        html += "</table>";
+
+        container.innerHTML = html;
+
+    } catch (error) {
+
+        console.error(error);
+
+        container.innerHTML =
+            "❌ Server connection error.";
+
+    }
+
+}
+
+
+function logout() {
+
+    window.location.href = "/login.html";
+
+}
+
+
+loadAttendance();
+
+</script>
+
+</body>
+
+</html>

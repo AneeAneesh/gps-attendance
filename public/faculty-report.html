@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Attendance Report - GPS Attendance</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+</head>
+
+<body>
+
+    <div class="dashboard-container">
+
+        <h1>GPS Attendance</h1>
+
+        <h2>Attendance Report</h2>
+
+        <br>
+
+        <label for="reportDate">
+            Select Date
+        </label>
+
+        <br>
+
+        <input
+            type="date"
+            id="reportDate"
+        >
+
+        <br>
+        <br>
+
+        <button id="loadReportBtn">
+            Load Report
+        </button>
+
+        <button id="downloadCsvBtn">
+            Download CSV
+        </button>
+
+        <br>
+        <br>
+
+        <p id="reportMessage"></p>
+
+        <div id="reportContainer"></div>
+
+        <br>
+
+        <button
+            onclick="window.location.href='/faculty-dashboard.html'"
+        >
+            Back to Dashboard
+        </button>
+
+    </div>
+
+    <script src="faculty-report.js"></script>
+
+</body>
+
+</html>

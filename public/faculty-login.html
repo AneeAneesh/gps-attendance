@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Faculty Login - GPS Attendance</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="login-container">
+
+        <div class="login-box">
+
+            <h1>GPS Attendance</h1>
+
+            <h2>Faculty Login</h2>
+
+            <form id="facultyLoginForm">
+
+                <label for="professor_id">
+                    Faculty ID
+                </label>
+
+                <input
+                    type="text"
+                    id="professor_id"
+                    placeholder="Enter Faculty ID"
+                    required
+                >
+
+                <label for="password">
+                    Password
+                </label>
+
+                <input
+                    type="password"
+                    id="password"
+                    placeholder="Enter Password"
+                    required
+                >
+
+                <button type="submit">
+                    Login
+                </button>
+
+            </form>
+
+            <p id="loginMessage"></p>
+
+        </div>
+
+    </div>
+
+    <script src="faculty-login.js"></script>
+
+</body>
+</html>

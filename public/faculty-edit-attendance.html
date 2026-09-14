@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Edit Attendance - GPS Attendance</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="dashboard-container">
+
+        <h1>GPS Attendance</h1>
+
+        <h2>Edit Attendance</h2>
+
+        <label for="attendanceDate">
+            Select Date
+        </label>
+
+        <input
+            type="date"
+            id="attendanceDate"
+        >
+
+        <br>
+        <br>
+
+        <button id="loadAttendanceBtn">
+            Load Attendance
+        </button>
+
+        <br>
+        <br>
+
+        <p id="message"></p>
+
+        <div id="attendanceContainer"></div>
+
+        <br>
+
+        <button onclick="window.location.href='/faculty-dashboard.html'">
+            Back to Dashboard
+        </button>
+
+    </div>
+
+    <script src="faculty-edit-attendance.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Faculty Dashboard - GPS Attendance</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="dashboard-container">
+
+        <h1>GPS Attendance</h1>
+
+        <h2>Faculty Dashboard</h2>
+
+        <div class="faculty-info">
+            <p>
+                <strong>Faculty ID:</strong>
+                <span id="facultyId"></span>
+            </p>
+
+            <p>
+                <strong>Name:</strong>
+                <span id="facultyName"></span>
+            </p>
+
+            <p>
+                <strong>Email:</strong>
+                <span id="facultyEmail"></span>
+            </p>
+        </div>
+
+        <hr>
+
+        <h3>Attendance Management</h3>
+
+        <div class="dashboard-buttons">
+
+            <button onclick="viewAttendance()">
+                View Attendance
+            </button>
+
+            <button onclick="markAttendance()">
+                Mark Attendance
+            </button>
+
+            <button onclick="editAttendance()">
+                Edit Attendance
+            </button>
+
+            <button onclick="downloadReport()">
+                Download Report
+            </button>
+
+        </div>
+
+        <br>
+
+        <button onclick="logout()">
+            Logout
+        </button>
+
+        <p id="dashboardMessage"></p>
+
+    </div>
+
+    <script src="faculty-dashboard.js"></script>
+
+</body>
+</html>
